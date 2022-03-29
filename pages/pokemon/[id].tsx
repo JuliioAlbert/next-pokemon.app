@@ -7,6 +7,7 @@ import { Pokemon } from "../../interfaces/pokemon_full";
 import { localFavorites } from "../../utils";
 import confetti from "canvas-confetti";
 import { getPokemonInfo } from "../../utils/getPokemonInfo";
+import { redirect } from "next/dist/server/api-utils";
 
 interface Props {
   pokemon: Pokemon;
@@ -122,8 +123,8 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 
   return {
     paths: pokemons151,
-    // fallback: "blocking", Permitir pasar los passos
-    fallback: false,
+    fallback: "blocking",
+    // fallback: false,
   };
 };
 
@@ -131,10 +132,21 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { id } = params as { id: string };
 
   const pokemon = await getPokemonInfo(id);
+
+  if (!pokemon) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: {
       pokemon,
     },
+    revalidate: 86400,
   };
 };
 
